@@ -23,18 +23,14 @@ String touchEventName = "touch_event";
 // Number each Filimin starting at 1.
 String particleId[] = {
   "",                         // 0
-  "330022001547353236343033", // pblesi
-  "2d0047001247353236343033", // carol
-  "2a0026000b47353235303037", // cindy
-  "2e003e001947353236343033"  // tammy
+  "420026000447393035313138", // Breanna
+  "INPUTHERE" // Scott
 };
 
 int particleColors[] = {
   0,   // Green
-  90,  // Magenta
-  170, // Blue
-  79,  // Orange
   131  // Purple
+  79,  // Orange
 };
 
 // TWEAKABLE VALUES FOR CAP SENSING. THE BELOW VALUES WORK WELL AS A STARTING PLACE:
@@ -198,7 +194,7 @@ void loop() {
 
   if (D_SERIAL) Serial.println(eventTypes[touchEvent]);
   if (touchEvent == tEVENT_TOUCH) {
-    int newColor = generateColor(finalColor, prevState, lastColorChangeDeviceId);
+    int newColor = generateColor(finalColor);
     setColor(newColor, prevState, myId);
     changeState(ATTACK, LOCAL_CHANGE);
   }
@@ -462,26 +458,22 @@ void setColor(int color, unsigned char prevState, unsigned char deviceId) {
   }
 }
 
-int generateColor(int currentFinalColor, unsigned char prevState, int lastColorChangeDeviceId) {
-  int color = 0;
-  int now = Time.now();
-  Serial.println("generating color...");
-  if (prevState == STATE_OFF || lastLocalColorChangeTime < now - COLOR_CHANGE_WINDOW) {
-    color = particleColors[myId];
-  } else {
-    bool foreignId = (lastColorChangeDeviceId != myId);
-    int minChange = minMaxColorDiffs[foreignId][0];
-    int maxChange = minMaxColorDiffs[foreignId][1];
-    int direction = random(2) * 2 - 1;
-    int magnitude = random(minChange, maxChange + 1);
-    color = currentFinalColor + direction * magnitude;
-    color = (color + 256) % 256;
-    // color = 119; // FORCE A COLOR
-  }
-  lastLocalColorChangeTime = now;
-  if (D_SERIAL) { Serial.print("final color: "); Serial.println(finalColor); }
-  return color;
+int generateColor(int lastColor) {
+    int currentIndex = 0;
+
+    // Find the index of the last color in the list
+    for (int i = 0; i < sizeof(particleColors) / sizeof(particleColors[0]); ++i) {
+        if (particleColors[i] == lastColor) {
+            currentIndex = i;
+            break;
+        }
+    }
+
+    // Return the next color in the list
+    currentIndex = (currentIndex + 1) % (sizeof(particleColors) / sizeof(particleColors[0]));
+    return particleColors[currentIndex];
 }
+
 
 void changeState(unsigned char newState, int remoteChange) {
   prevState = state;
